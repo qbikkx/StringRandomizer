@@ -13,17 +13,27 @@ import io.reactivex.Single
 internal abstract class HashStringDao {
 
     @Query("SELECT * FROM HashStrings")
-    abstract fun getAllHashStrings(): Observable<List<HashString>>
+    abstract fun getAllHashStrings(): Single<List<HashString>>
 
     @Insert
-    abstract fun saveHashString(hashString: HashString): Single<Long>
+    protected abstract fun insertHashString(hashString: HashString): Long
 
     @Insert
-    abstract fun saveHashStrings(hashStrings: List<HashString>) : Single<Long>
+    abstract fun insertHashStrings(hashStrings: List<HashString>) : List<Long>
 
     @Update
-    abstract fun updateHashString(hashString: HashString): Completable
+    protected abstract fun updateHashString(hashString: HashString)
 
     @Delete
     abstract fun deleteAllHashStrings(): Completable
+
+    fun insertOrUpdateShow(hashString: HashString): HashString = when {
+        hashString.id == null -> {
+            hashString.copy(id = insertHashString(hashString))
+        }
+        else -> {
+            updateHashString(hashString)
+            hashString
+        }
+    }
 }

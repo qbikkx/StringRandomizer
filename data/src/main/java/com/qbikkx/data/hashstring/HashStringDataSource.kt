@@ -8,7 +8,7 @@ import io.reactivex.Single
  */
 interface HashStringDataSource {
 
-    fun getHashStrings() : Single<HashString>
+    fun getHashStrings() : Single<List<HashString>>
 
     fun saveHashString(hashString: HashString) : Completable
 

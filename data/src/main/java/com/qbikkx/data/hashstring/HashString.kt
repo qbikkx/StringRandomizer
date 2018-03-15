@@ -8,7 +8,7 @@ import android.arch.persistence.room.PrimaryKey
  * Created by qbikkx on 15.03.18.
  */
 @Entity(tableName = "HashStrings")
-data class HashString(@PrimaryKey(autoGenerate = true) @ColumnInfo(name = "id") var mId: Long? = null,
+data class HashString(@PrimaryKey(autoGenerate = true) @ColumnInfo(name = "id") var id: Long? = null,
                       @ColumnInfo(name = "value") val string: String) {
 
     val hash: Int get() = string.hashCode()
