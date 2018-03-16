@@ -12,14 +12,10 @@ class HashStringRepository internal constructor(val localDataSource: HashStringL
                                                 val remoteDataSource: HashStringRemoteDataSource) : HashStringDataSource {
 
     override fun getHashStrings(): Single<List<HashString>> {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        TODO("not implemented")
     }
 
     override fun saveHashString(hashString: HashString): Completable {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    override fun saveHashStrings(hashStrings: List<HashString>): Completable {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 

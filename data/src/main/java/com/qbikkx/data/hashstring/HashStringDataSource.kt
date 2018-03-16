@@ -12,7 +12,5 @@ interface HashStringDataSource {
 
     fun saveHashString(hashString: HashString) : Completable
 
-    fun saveHashStrings(hashStrings: List<HashString>) : Completable
-
     fun deleteHashStrings() : Completable
 }

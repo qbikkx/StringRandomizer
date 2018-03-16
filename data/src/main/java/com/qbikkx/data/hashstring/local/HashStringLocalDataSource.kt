@@ -15,11 +15,5 @@ internal class HashStringLocalDataSource(private val hashStringDao: HashStringDa
     override fun saveHashString(hashString: HashString): Completable =
             Completable.fromAction({ hashStringDao.insertOrUpdateShow(hashString) })
 
-
-    override fun saveHashStrings(hashStrings: List<HashString>): Completable {
-        //TODO:
-    }
-
     override fun deleteHashStrings(): Completable = hashStringDao.deleteAllHashStrings()
-
 }
