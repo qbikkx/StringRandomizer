@@ -34,8 +34,9 @@ android {
 
 dependencies {
     implementation project(':base')
-    implementation 'com.android.support.constraint:constraint-layout:1.0.2'
-
+    implementation project(':data')
+    api deps.help.kotterknife
+    api deps.android.viewmodel
     testImplementation deps.test.junit
     androidTestImplementation deps.test.testRunner
     androidTestImplementation deps.test.espresso
