@@ -1,5 +1,6 @@
-package com.qbikkx.data.hashstring
+package com.qbikkx.data.hashstring.source
 
+import com.qbikkx.data.hashstring.HashString
 import io.reactivex.Completable
 import io.reactivex.Single
 

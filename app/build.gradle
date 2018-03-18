@@ -37,6 +37,11 @@ dependencies {
     implementation project(':data')
     api deps.help.kotterknife
     api deps.android.viewmodel
+    api deps.android.arcComponents
+    api deps.android.arcExt
+    kapt deps.android.arcComponentsCompiler
+    kapt deps.dagger.daggerCompiler
+    kapt deps.dagger.daggerAndroidCompiler
     testImplementation deps.test.junit
     androidTestImplementation deps.test.testRunner
     androidTestImplementation deps.test.espresso

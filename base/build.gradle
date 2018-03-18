@@ -43,4 +43,7 @@ dependencies {
 
     api deps.room.roomRuntime
     api deps.room.roomRx
+
+    api deps.dagger.dagger
+    api deps.dagger.daggerAndroid
 }

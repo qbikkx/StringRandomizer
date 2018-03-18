@@ -1,4 +1,4 @@
-package com.qbikkx.stringrandomizer
+package com.qbikkx.stringrandomizer.stringsscreen
 
 import com.qbikkx.base.mvi.BaseIntent
 
@@ -10,4 +10,6 @@ sealed class StringsIntent : BaseIntent {
     object InitialIntent : StringsIntent()
 
     object AddStringIntent : StringsIntent()
+
+    data class SortOrderChangedIntent(val order: SortOrder) : StringsIntent()
 }

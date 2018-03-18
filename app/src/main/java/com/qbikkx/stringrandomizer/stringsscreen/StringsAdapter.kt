@@ -1,4 +1,4 @@
-package com.qbikkx.stringrandomizer
+package com.qbikkx.stringrandomizer.stringsscreen
 
 import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
@@ -6,12 +6,13 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import com.qbikkx.data.hashstring.HashString
+import com.qbikkx.stringrandomizer.R
 import kotterknife.bindView
 
 /**
  * Created by qbikkx on 16.03.18.
  */
-class StringsAdapter(private val strings: List<HashString>) :
+class StringsAdapter(private var strings: List<HashString>) :
         RecyclerView.Adapter<StringsAdapter.StringsViewHolder>() {
 
     override fun onBindViewHolder(holder: StringsViewHolder?, position: Int) {
@@ -35,5 +36,10 @@ class StringsAdapter(private val strings: List<HashString>) :
             value.text = hashString.string
             hash.text = hashString.hash.toString()
         }
+    }
+
+    fun setData(strings: List<HashString>) {
+        this.strings = strings
+        notifyDataSetChanged()
     }
 }

@@ -16,8 +16,10 @@ buildscript {
             'rxJava'       : '2.1.7',
             'rxAndroid'    : '2.0.1',
             'rxBinding'    : '2.1.1',
+            'arcComponents': '1.1.0',
             'room'         : '1.0.0',
             'roomRx'       : '1.0.0',
+            'dagger'       : '2.15',
             'kotterknife'  : '0.1.0-SNAPSHOT',
             'sourceCompat' : JavaVersion.VERSION_1_8,
             'targetCompat' : JavaVersion.VERSION_1_8
@@ -25,8 +27,11 @@ buildscript {
 
     ext.deps = [
             android: [
-                    'gradlePlugin': "com.android.tools.build:gradle:${versions.androidPlugin}",
-                    'viewmodel'   : "android.arch.lifecycle:viewmodel:${versions.viewmodel}"
+                    'gradlePlugin'         : "com.android.tools.build:gradle:${versions.androidPlugin}",
+                    'viewmodel'            : "android.arch.lifecycle:viewmodel:${versions.viewmodel}",
+                    'arcComponentsCompiler': "android.arch.lifecycle:compiler:${versions.arcComponents}",
+                    'arcComponents'        : "android.arch.lifecycle:runtime:${versions.arcComponents}",
+                    'arcExt'               : "android.arch.lifecycle:extensions:${versions.arcComponents}"
             ],
 
             support: [
@@ -57,6 +62,13 @@ buildscript {
                     'roomRuntime' : "android.arch.persistence.room:runtime:${versions.room}",
                     'roomCompiler': "android.arch.persistence.room:compiler:${versions.room}",
                     'roomRx'      : "android.arch.persistence.room:rxjava2:${versions.roomRx}",
+            ],
+
+            dagger : [
+                    'dagger'               : "com.google.dagger:dagger:${versions.dagger}",
+                    'daggerCompiler'       : "com.google.dagger:dagger-compiler:${versions.dagger}",
+                    'daggerAndroid'        : "com.google.dagger:dagger-android-support:${versions.dagger}",
+                    'daggerAndroidCompiler': "com.google.dagger:dagger-android-processor:${versions.dagger}"
             ],
 
             help   : [
