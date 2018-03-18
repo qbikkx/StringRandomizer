@@ -6,6 +6,7 @@ import com.qbikkx.data.hashstring.source.HashStringRepository
 import com.qbikkx.stringrandomizer.RandomizerApplication
 import dagger.BindsInstance
 import dagger.Component
+import dagger.android.AndroidInjectionModule
 import dagger.android.AndroidInjector
 import dagger.android.support.AndroidSupportInjectionModule
 import javax.inject.Singleton

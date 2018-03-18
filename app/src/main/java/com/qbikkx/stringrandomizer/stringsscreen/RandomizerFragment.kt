@@ -1,8 +1,10 @@
 package com.qbikkx.stringrandomizer.stringsscreen
 
+import android.arch.lifecycle.ViewModelProvider
 import android.arch.lifecycle.ViewModelProviders
 import android.os.Bundle
 import android.support.design.widget.FloatingActionButton
+import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.view.View
 import android.widget.ProgressBar
@@ -11,19 +13,20 @@ import android.widget.TextView
 import com.qbikkx.base.mvi.BaseView
 import com.qbikkx.base.ui.BaseFragment
 import com.qbikkx.stringrandomizer.R
-import com.qbikkx.stringrandomizer.ViewModelFactory
+import com.qbikkx.stringrandomizer.RandomizerViewModelFactory
 import com.qbikkx.stringrandomizer.di.ActivityScoped
 import io.reactivex.Observable
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.subjects.PublishSubject
 import kotterknife.bindView
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
  * Created by qbikkx on 16.03.18.
  */
 @ActivityScoped
-class RandomizerFragment @Inject constructor(): BaseFragment(), BaseView<StringsIntent, StringsViewState> {
+class RandomizerFragment @Inject constructor() : BaseFragment(), BaseView<StringsIntent, StringsViewState> {
 
     val stringsList: RecyclerView by bindView(R.id.strings_list)
     val addBtn: FloatingActionButton by bindView(R.id.add_new_string_fab)
@@ -35,13 +38,13 @@ class RandomizerFragment @Inject constructor(): BaseFragment(), BaseView<Strings
     private val disposables = CompositeDisposable()
 
     private val addStringIntentPublisher = PublishSubject.create<StringsIntent.AddStringIntent>()
+    private val changeSortIntentPublisher = PublishSubject.create<StringsIntent.SortOrderChangedIntent>()
 
     @Inject
-    lateinit var viewModeFactory: ViewModelFactory
+    lateinit var viewModelFactory: ViewModelProvider.Factory
 
     private val viewModel: StringsViewModel by lazy(LazyThreadSafetyMode.NONE) {
-        ViewModelProviders
-                .of(this, viewModeFactory)
+        ViewModelProviders.of(this, viewModelFactory)
                 .get(StringsViewModel::class.java)
     }
 
@@ -54,9 +57,16 @@ class RandomizerFragment @Inject constructor(): BaseFragment(), BaseView<Strings
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        disposables.add(viewModel.states().subscribe(this::render))
+        stringsList.layoutManager = LinearLayoutManager(activity!!)
+        stringsList.adapter = stringsAdapter
+        disposables.add(viewModel.states().subscribe(this::render, Timber::e))
         viewModel.processIntents(intents())
-
+        addBtn.setOnClickListener { addStringIntentPublisher.onNext(StringsIntent.AddStringIntent) }
+        sortOrderSwitch.setOnClickListener {
+            changeSortIntentPublisher.onNext(StringsIntent.SortOrderChangedIntent(
+                    if (sortOrderSwitch.isChecked) SortOrder.VALUE
+                    else SortOrder.HASH))
+        }
     }
 
     override fun onDestroy() {
@@ -70,7 +80,6 @@ class RandomizerFragment @Inject constructor(): BaseFragment(), BaseView<Strings
             sortOrderChangedIntent())
 
 
-
     override fun render(state: StringsViewState) {
         if (state.isLoading || state.isReordering || state.isSaving) {
             progressBar.visibility = View.VISIBLE
@@ -81,6 +90,7 @@ class RandomizerFragment @Inject constructor(): BaseFragment(), BaseView<Strings
         if (state.strings.isEmpty()) {
             showEmptyList()
         } else {
+            showList()
             stringsAdapter.setData(state.strings)
         }
     }
@@ -90,13 +100,17 @@ class RandomizerFragment @Inject constructor(): BaseFragment(), BaseView<Strings
         noDataView.visibility = View.VISIBLE
     }
 
+    private fun showList() {
+        stringsList.visibility = View.VISIBLE
+        noDataView.visibility = View.GONE
+    }
+
     private fun initialIntent(): Observable<StringsIntent.InitialIntent> =
             Observable.just(StringsIntent.InitialIntent)
 
     private fun addStringIntent(): Observable<StringsIntent.AddStringIntent> =
-            Observable.just(StringsIntent.AddStringIntent)
+            addStringIntentPublisher
 
     private fun sortOrderChangedIntent(): Observable<StringsIntent.SortOrderChangedIntent> =
-            Observable.just(StringsIntent.SortOrderChangedIntent(
-                    if (sortOrderSwitch.isChecked) SortOrder.VALUE else SortOrder.HASH))
+            changeSortIntentPublisher
 }

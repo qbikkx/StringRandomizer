@@ -20,6 +20,7 @@ buildscript {
             'room'         : '1.0.0',
             'roomRx'       : '1.0.0',
             'dagger'       : '2.15',
+            'timber'       : '4.6.1',
             'kotterknife'  : '0.1.0-SNAPSHOT',
             'sourceCompat' : JavaVersion.VERSION_1_8,
             'targetCompat' : JavaVersion.VERSION_1_8
@@ -72,7 +73,8 @@ buildscript {
             ],
 
             help   : [
-                    'kotterknife': "com.jakewharton:kotterknife:${versions.kotterknife}"
+                    'kotterknife': "com.jakewharton:kotterknife:${versions.kotterknife}",
+                    'timber'     : "com.jakewharton.timber:timber:${versions.timber}"
             ],
 
             test   : [

@@ -23,11 +23,11 @@ class HashStringRepository @Inject constructor(@Local val localDataSource: HashS
     private var cachedHashStrings: MutableMap<Long, HashString>? = null
 
     override fun getHashStrings(): Single<List<HashString>> {
-       if (cachedHashStrings != null && !cacheIsDirty) {
-           return Single.just(cachedHashStrings!!.values.toList())
-       } else if (cachedHashStrings == null) {
-           cachedHashStrings = LinkedHashMap()
-       }
+        if (cachedHashStrings != null && !cacheIsDirty) {
+            return Single.just(cachedHashStrings!!.values.toList())
+        } else if (cachedHashStrings == null) {
+            cachedHashStrings = LinkedHashMap()
+        }
 
         val remoteHashStrings = getAndSaveRemoteHashStrings()
 
@@ -41,38 +41,36 @@ class HashStringRepository @Inject constructor(@Local val localDataSource: HashS
         }
     }
 
-    override fun saveHashString(hashString: HashString): Completable {
+    override fun saveHashString(hashString: HashString) = Single.fromCallable {
+        Thread.sleep(10000)
         remoteDataSource.saveHashString(hashString)
-        localDataSource.saveHashString(hashString)
+        val hashStr = localDataSource.saveHashString(hashString).blockingGet()
 
         if (cachedHashStrings == null) {
             cachedHashStrings = LinkedHashMap()
         }
 
-        cachedHashStrings!![hashString.id!!] = hashString
-
-        return Completable.complete()
+        cachedHashStrings!![hashStr.id!!] = hashStr
+        hashStr
     }
 
-    override fun deleteHashStrings(): Completable {
-       remoteDataSource.deleteHashStrings()
+    override fun deleteHashStrings() = Completable.fromAction {
+        remoteDataSource.deleteHashStrings()
         localDataSource.deleteHashStrings()
 
         if (cachedHashStrings != null) {
             cachedHashStrings!!.clear()
         }
-
-        return Completable.complete()
     }
 
     private fun getAndCacheLocalHashStrings(): Single<List<HashString>> =
             localDataSource.getHashStrings().flatMap {
-                Observable.fromIterable(it).doOnNext{
+                Observable.fromIterable(it).doOnNext {
                     cachedHashStrings!![it.id!!] = it
                 }.toList()
             }
 
-    private fun getAndSaveRemoteHashStrings() : Single<List<HashString>> =
+    private fun getAndSaveRemoteHashStrings(): Single<List<HashString>> =
             remoteDataSource.getHashStrings().flatMap {
                 Observable.fromIterable(it).doOnNext {
                     localDataSource.saveHashString(it)

@@ -11,7 +11,7 @@ interface HashStringDataSource {
 
     fun getHashStrings() : Single<List<HashString>>
 
-    fun saveHashString(hashString: HashString) : Completable
+    fun saveHashString(hashString: HashString) : Single<HashString>
 
     fun deleteHashStrings() : Completable
 }

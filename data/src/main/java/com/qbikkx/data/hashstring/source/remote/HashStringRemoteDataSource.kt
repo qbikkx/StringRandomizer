@@ -15,7 +15,7 @@ class HashStringRemoteDataSource @Inject constructor(): HashStringDataSource {
     override fun getHashStrings(): Single<List<HashString>> = Single.just(emptyList())
 
 
-    override fun saveHashString(hashString: HashString): Completable = Completable.complete()
+    override fun saveHashString(hashString: HashString): Single<HashString> = Single.just(hashString)
 
 
     override fun deleteHashStrings(): Completable = Completable.complete()

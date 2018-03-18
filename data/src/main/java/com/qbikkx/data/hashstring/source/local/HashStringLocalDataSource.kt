@@ -18,8 +18,9 @@ class HashStringLocalDataSource @Inject constructor(db: StringsRandomizerDatabas
 
     override fun getHashStrings(): Single<List<HashString>> = hashStringDao.getAllHashStrings()
 
-    override fun saveHashString(hashString: HashString): Completable =
-            Completable.fromAction({ hashStringDao.insertOrUpdateShow(hashString) })
+    override fun saveHashString(hashString: HashString): Single<HashString> {
+        return Single.just(hashStringDao.insertOrUpdateShow(hashString))
+    }
 
     override fun deleteHashStrings(): Completable {
         hashStringDao.deleteAllHashStrings()

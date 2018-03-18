@@ -46,4 +46,6 @@ dependencies {
 
     api deps.dagger.dagger
     api deps.dagger.daggerAndroid
+
+    api deps.help.timber
 }

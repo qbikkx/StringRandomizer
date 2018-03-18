@@ -2,19 +2,73 @@ package com.qbikkx.stringrandomizer.stringsscreen
 
 import android.arch.lifecycle.ViewModel
 import com.qbikkx.base.mvi.BaseViewModel
+import com.qbikkx.base.util.RxSchedulers
 import com.qbikkx.base.util.notOfType
 import com.qbikkx.base.util.randomString
 import com.qbikkx.data.hashstring.HashString
+import com.qbikkx.data.hashstring.source.HashStringRepository
 import io.reactivex.Observable
 import io.reactivex.ObservableTransformer
 import io.reactivex.functions.BiFunction
 import io.reactivex.subjects.PublishSubject
+import timber.log.Timber
+import java.util.concurrent.TimeUnit
+import javax.inject.Inject
 
 /**
  * Created by qbikkx on 16.03.18.
  */
-class StringsViewModel (val proccessorHolder: StringsActionProccessorHolder):
+class StringsViewModel (val stringsRepository: HashStringRepository,
+                                           val schedulers: RxSchedulers):
         ViewModel(), BaseViewModel<StringsIntent, StringsViewState> {
+
+    val loadHashStringsProccessor =
+            ObservableTransformer<StringsAction.LoadStringsAction, StringsResult.LoadStringResult> { actions ->
+                actions.flatMap {
+                    stringsRepository.getHashStrings()
+                            .toObservable()
+                            .map { strings -> StringsResult.LoadStringResult.Success(strings) }
+                            .cast(StringsResult.LoadStringResult::class.java)
+                            .onErrorReturn(StringsResult.LoadStringResult::Failure)
+                            .subscribeOn(schedulers.network)
+                            .observeOn(schedulers.main)
+                            .startWith(StringsResult.LoadStringResult.InFlight)
+                }
+            }
+
+    val saveHashStringProccessor =
+            ObservableTransformer<StringsAction.StoreStringAction, StringsResult.AddStringResult> { actions ->
+                actions.flatMap { action ->
+                    stringsRepository.saveHashString(action.hashString)
+                            .flatMap { stringsRepository.getHashStrings() }
+                            .toObservable()
+                            .map { strings -> StringsResult.AddStringResult.Success(strings) }
+                            .cast(StringsResult.AddStringResult::class.java)
+                            .onErrorReturn(StringsResult.AddStringResult::Failure)
+                            .subscribeOn(schedulers.network)
+                            .observeOn(schedulers.main)
+                            .startWith(StringsResult.AddStringResult.InFlight)
+                }
+            }
+
+    var actionProccessor =
+            ObservableTransformer<StringsAction, StringsResult> { actions ->
+                actions.publish { shared ->
+                    Observable.merge(
+                            shared.ofType(StringsAction.LoadStringsAction::class.java)
+                                    .compose(loadHashStringsProccessor),
+                            shared.ofType(StringsAction.StoreStringAction::class.java)
+                                    .compose(saveHashStringProccessor))
+                            .mergeWith(
+                                    shared.filter { v ->
+                                        v !is StringsAction.LoadStringsAction &&
+                                                v !is StringsAction.StoreStringAction
+                                    }.flatMap { w ->
+                                                Observable.error<StringsResult>(IllegalArgumentException("Unknown action type: $w"))
+                                            }
+                            )
+                }
+            }
 
     private val intentsSubject: PublishSubject<StringsIntent> = PublishSubject.create()
     private val statesObservable: Observable<StringsViewState> = compose()
@@ -39,7 +93,7 @@ class StringsViewModel (val proccessorHolder: StringsActionProccessorHolder):
         return intentsSubject
                 .compose(intentFilter)
                 .map ( this::actionFromIntent )
-                .compose(proccessorHolder.actionProccessor)
+                .compose(actionProccessor)
                 .scan(StringsViewState.idle(), reducer)
                 .distinctUntilChanged()
                 .replay(1)
