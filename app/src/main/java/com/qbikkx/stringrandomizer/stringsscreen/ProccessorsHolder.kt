@@ -1,6 +1,8 @@
 package com.qbikkx.stringrandomizer.stringsscreen
 
 import com.qbikkx.base.util.RxSchedulers
+import com.qbikkx.base.util.sortedByWithDelay
+import com.qbikkx.data.hashstring.HashString
 import com.qbikkx.data.hashstring.source.HashStringRepository
 import io.reactivex.Observable
 import io.reactivex.ObservableTransformer
@@ -10,22 +12,23 @@ import io.reactivex.ObservableTransformer
  */
 class ProccessorsHolder(stringsRepository: HashStringRepository, schedulers: RxSchedulers) {
 
+    private fun sortStrings(strings: List<HashString>, order: SortOrder): List<HashString> =
+            when (order) {
+                SortOrder.HASH -> strings.sortedByWithDelay { it.hash }
+                SortOrder.VALUE -> strings.sortedByWithDelay { it.string }
+            }
+
+
     val loadHashStringsProccessor =
             ObservableTransformer<StringsAction.LoadStringsAction, StringsResult.LoadStringResult> { actions ->
                 actions.flatMap { action ->
                     stringsRepository.getHashStrings()
                             .toObservable()
-                            .map { strings ->
-                                if (action.order == SortOrder.HASH)
-                                    strings.sortedBy { it.hash }
-                                else
-                                    strings.sortedBy { it.string }
-                            }
-                            .map { strings -> StringsResult.LoadStringResult.Success(strings) }
-
+                            .map { strings -> sortStrings(strings, action.order) }
+                            .map { strings -> StringsResult.LoadStringResult.Success(strings, action.order) }
                             .cast(StringsResult.LoadStringResult::class.java)
                             .onErrorReturn(StringsResult.LoadStringResult::Failure)
-                            .subscribeOn(schedulers.network)
+                            .subscribeOn(schedulers.repository)
                             .observeOn(schedulers.main)
                             .startWith(StringsResult.LoadStringResult.InFlight)
                 }
@@ -40,7 +43,7 @@ class ProccessorsHolder(stringsRepository: HashStringRepository, schedulers: RxS
                             .map { strings -> StringsResult.AddStringResult.Success(strings) }
                             .cast(StringsResult.AddStringResult::class.java)
                             .onErrorReturn(StringsResult.AddStringResult::Failure)
-                            .subscribeOn(schedulers.network)
+                            .subscribeOn(schedulers.repository)
                             .observeOn(schedulers.main)
                             .startWith(StringsResult.AddStringResult.InFlight)
                 }

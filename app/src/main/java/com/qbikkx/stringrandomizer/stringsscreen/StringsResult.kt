@@ -9,7 +9,7 @@ import com.qbikkx.data.hashstring.HashString
 sealed class StringsResult : BaseResult {
 
     sealed class LoadStringResult : StringsResult() {
-        data class Success(val strings: List<HashString>) : LoadStringResult()
+        data class Success(val strings: List<HashString>, val order: SortOrder) : LoadStringResult()
 
         data class Failure(val error: Throwable) : LoadStringResult()
 

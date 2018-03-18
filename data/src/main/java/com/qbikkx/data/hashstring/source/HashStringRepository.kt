@@ -42,7 +42,7 @@ class HashStringRepository @Inject constructor(@Local val localDataSource: HashS
     }
 
     override fun saveHashString(hashString: HashString) = Single.fromCallable {
-        Thread.sleep(10000)
+        Thread.sleep(1000)
         remoteDataSource.saveHashString(hashString)
         val hashStr = localDataSource.saveHashString(hashString).blockingGet()
 

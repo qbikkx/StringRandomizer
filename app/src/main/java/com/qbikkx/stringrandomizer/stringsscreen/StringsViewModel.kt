@@ -11,14 +11,12 @@ import io.reactivex.Observable
 import io.reactivex.ObservableTransformer
 import io.reactivex.functions.BiFunction
 import io.reactivex.subjects.PublishSubject
-import timber.log.Timber
-import java.util.concurrent.TimeUnit
-import javax.inject.Inject
 
 /**
  * Created by qbikkx on 16.03.18.
  */
-class StringsViewModel (stringsRepository: HashStringRepository, schedulers: RxSchedulers):
+
+class StringsViewModel(stringsRepository: HashStringRepository, val schedulers: RxSchedulers) :
         ViewModel(), BaseViewModel<StringsIntent, StringsViewState> {
 
     private val proccessorsHolder = ProccessorsHolder(stringsRepository, schedulers)
@@ -45,11 +43,14 @@ class StringsViewModel (stringsRepository: HashStringRepository, schedulers: RxS
     private fun compose(): Observable<StringsViewState> {
         return intentsSubject
                 .compose(intentFilter)
-                .map ( this::actionFromIntent )
+                .map(this::actionFromIntent)
                 .compose(proccessorsHolder.actionProccessor)
                 .scan(StringsViewState.idle(), reducer)
+                //предотвращаем повторный render предыдущего состояния
                 .distinctUntilChanged()
+                //восстанавливаем предыдущее событие при повороте экрана
                 .replay(1)
+                //держим цепочку живой даже когда вьюхи нет, чтобы совпадать с лайфсайклом ViewModel
                 .autoConnect(0)
 
     }
@@ -70,15 +71,14 @@ class StringsViewModel (stringsRepository: HashStringRepository, schedulers: RxS
 
         private val reducer = BiFunction { previousState: StringsViewState, result: StringsResult ->
             when (result) {
-                is StringsResult.LoadStringResult -> when(result) {
+                is StringsResult.LoadStringResult -> when (result) {
                     is StringsResult.LoadStringResult.Success -> {
-                        val strings = result.strings
-                        previousState.copy(isLoading = false, strings = strings)
+                        previousState.copy(isLoading = false, strings = result.strings, sortOrder = result.order)
                     }
                     is StringsResult.LoadStringResult.Failure ->
                         previousState.copy(isLoading = false)
                     is StringsResult.LoadStringResult.InFlight ->
-                            previousState.copy(isLoading = true)
+                        previousState.copy(isLoading = true)
                 }
                 is StringsResult.AddStringResult -> when (result) {
                     is StringsResult.AddStringResult.Success -> {
