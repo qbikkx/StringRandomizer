@@ -14,6 +14,6 @@ fun ClosedRange<Char>.randomString(lenght: Int) =
  * Returns a list of all elements sorted according to natural sort order of the value returned by specified [selector] function.
  */
 inline fun <T, R : Comparable<R>> Iterable<T>.sortedByWithDelay(crossinline selector: (T) -> R?): List<T> {
-    Thread.sleep(5000)
+    Thread.sleep(2000)
     return sortedWith(compareBy(selector))
 }
