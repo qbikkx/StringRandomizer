@@ -18,57 +18,10 @@ import javax.inject.Inject
 /**
  * Created by qbikkx on 16.03.18.
  */
-class StringsViewModel (val stringsRepository: HashStringRepository,
-                                           val schedulers: RxSchedulers):
+class StringsViewModel (stringsRepository: HashStringRepository, schedulers: RxSchedulers):
         ViewModel(), BaseViewModel<StringsIntent, StringsViewState> {
 
-    val loadHashStringsProccessor =
-            ObservableTransformer<StringsAction.LoadStringsAction, StringsResult.LoadStringResult> { actions ->
-                actions.flatMap {
-                    stringsRepository.getHashStrings()
-                            .toObservable()
-                            .map { strings -> StringsResult.LoadStringResult.Success(strings) }
-                            .cast(StringsResult.LoadStringResult::class.java)
-                            .onErrorReturn(StringsResult.LoadStringResult::Failure)
-                            .subscribeOn(schedulers.network)
-                            .observeOn(schedulers.main)
-                            .startWith(StringsResult.LoadStringResult.InFlight)
-                }
-            }
-
-    val saveHashStringProccessor =
-            ObservableTransformer<StringsAction.StoreStringAction, StringsResult.AddStringResult> { actions ->
-                actions.flatMap { action ->
-                    stringsRepository.saveHashString(action.hashString)
-                            .flatMap { stringsRepository.getHashStrings() }
-                            .toObservable()
-                            .map { strings -> StringsResult.AddStringResult.Success(strings) }
-                            .cast(StringsResult.AddStringResult::class.java)
-                            .onErrorReturn(StringsResult.AddStringResult::Failure)
-                            .subscribeOn(schedulers.network)
-                            .observeOn(schedulers.main)
-                            .startWith(StringsResult.AddStringResult.InFlight)
-                }
-            }
-
-    var actionProccessor =
-            ObservableTransformer<StringsAction, StringsResult> { actions ->
-                actions.publish { shared ->
-                    Observable.merge(
-                            shared.ofType(StringsAction.LoadStringsAction::class.java)
-                                    .compose(loadHashStringsProccessor),
-                            shared.ofType(StringsAction.StoreStringAction::class.java)
-                                    .compose(saveHashStringProccessor))
-                            .mergeWith(
-                                    shared.filter { v ->
-                                        v !is StringsAction.LoadStringsAction &&
-                                                v !is StringsAction.StoreStringAction
-                                    }.flatMap { w ->
-                                                Observable.error<StringsResult>(IllegalArgumentException("Unknown action type: $w"))
-                                            }
-                            )
-                }
-            }
+    private val proccessorsHolder = ProccessorsHolder(stringsRepository, schedulers)
 
     private val intentsSubject: PublishSubject<StringsIntent> = PublishSubject.create()
     private val statesObservable: Observable<StringsViewState> = compose()
@@ -93,7 +46,7 @@ class StringsViewModel (val stringsRepository: HashStringRepository,
         return intentsSubject
                 .compose(intentFilter)
                 .map ( this::actionFromIntent )
-                .compose(actionProccessor)
+                .compose(proccessorsHolder.actionProccessor)
                 .scan(StringsViewState.idle(), reducer)
                 .distinctUntilChanged()
                 .replay(1)
@@ -103,13 +56,13 @@ class StringsViewModel (val stringsRepository: HashStringRepository,
 
     private fun actionFromIntent(intent: StringsIntent): StringsAction =
             when (intent) {
-                StringsIntent.InitialIntent -> StringsAction.LoadStringsAction
+                StringsIntent.InitialIntent -> StringsAction.LoadStringsAction(SortOrder.HASH)
                 StringsIntent.AddStringIntent -> {
                     val generated = ('a'..'z').randomString(6)
                     StringsAction.StoreStringAction(HashString(string = generated))
                 }
                 is StringsIntent.SortOrderChangedIntent -> {
-                    StringsAction.LoadStringsAction
+                    StringsAction.LoadStringsAction(intent.order)
                 }
             }
 

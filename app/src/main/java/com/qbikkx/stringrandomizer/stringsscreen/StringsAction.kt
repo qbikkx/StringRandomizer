@@ -8,7 +8,7 @@ import com.qbikkx.data.hashstring.HashString
  */
 sealed class StringsAction : BaseAction {
 
-    object LoadStringsAction : StringsAction()
+    data class LoadStringsAction(val order: SortOrder) : StringsAction()
 
     data class StoreStringAction(val hashString: HashString) : StringsAction()
 }

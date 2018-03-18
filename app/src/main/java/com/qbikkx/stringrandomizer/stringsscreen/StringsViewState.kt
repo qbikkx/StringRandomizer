@@ -8,7 +8,6 @@ import com.qbikkx.data.hashstring.HashString
  */
 data class StringsViewState(val isLoading: Boolean,
                             val isSaving: Boolean,
-                            val isReordering: Boolean,
                             val strings: List<HashString>,
                             val sortOrder: SortOrder) : BaseViewState {
 
@@ -16,8 +15,7 @@ data class StringsViewState(val isLoading: Boolean,
         fun idle(): StringsViewState = StringsViewState(
                 isLoading = false,
                 isSaving = false,
-                isReordering = false,
                 strings = emptyList(),
-                sortOrder = SortOrder.VALUE)
+                sortOrder = SortOrder.HASH)
     }
 }

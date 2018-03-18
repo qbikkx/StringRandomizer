@@ -39,6 +39,7 @@ dependencies {
     api deps.android.viewmodel
     api deps.android.arcComponents
     api deps.android.arcExt
+    api deps.rx.rxBinding
     kapt deps.android.arcComponentsCompiler
     kapt deps.dagger.daggerCompiler
     kapt deps.dagger.daggerAndroidCompiler

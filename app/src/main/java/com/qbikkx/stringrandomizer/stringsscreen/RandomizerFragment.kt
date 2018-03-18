@@ -10,6 +10,7 @@ import android.view.View
 import android.widget.ProgressBar
 import android.widget.Switch
 import android.widget.TextView
+import com.jakewharton.rxbinding2.widget.RxCompoundButton
 import com.qbikkx.base.mvi.BaseView
 import com.qbikkx.base.ui.BaseFragment
 import com.qbikkx.stringrandomizer.R
@@ -66,6 +67,8 @@ class RandomizerFragment @Inject constructor() : BaseFragment(), BaseView<String
             changeSortIntentPublisher.onNext(StringsIntent.SortOrderChangedIntent(
                     if (sortOrderSwitch.isChecked) SortOrder.VALUE
                     else SortOrder.HASH))
+            sortOrderSwitch.text = resources.getText(if (sortOrderSwitch.isChecked) R.string.sort_by_value
+            else R.string.sort_by_hash)
         }
     }
 
@@ -81,7 +84,8 @@ class RandomizerFragment @Inject constructor() : BaseFragment(), BaseView<String
 
 
     override fun render(state: StringsViewState) {
-        if (state.isLoading || state.isReordering || state.isSaving) {
+        Timber.e(state.toString())
+        if (state.isLoading || state.isSaving) {
             progressBar.visibility = View.VISIBLE
         } else {
             progressBar.visibility = View.GONE
