@@ -73,7 +73,18 @@ class StringsViewModel(stringsRepository: HashStringRepository, val schedulers: 
             when (result) {
                 is StringsResult.LoadStringResult -> when (result) {
                     is StringsResult.LoadStringResult.Success -> {
-                        previousState.copy(isLoading = false, strings = result.strings, sortOrder = result.order)
+                        //если сортировка была запущена раньше чем добавление, но выполнилась позже,
+                        //то закидываем ранее добавленый элемент в конец.
+                        val diff: List<HashString> = previousState.strings.minus(result.strings)
+                        val viewStateStrings: List<HashString>
+                        viewStateStrings = if (diff.isNotEmpty()) {
+                            result.strings.plus(diff)
+                        } else {
+                            result.strings
+                        }
+                        previousState.copy(isLoading = false,
+                                strings = viewStateStrings,
+                                sortOrder = result.order)
                     }
                     is StringsResult.LoadStringResult.Failure ->
                         previousState.copy(isLoading = false)
