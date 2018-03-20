@@ -1,12 +1,15 @@
 package com.qbikkx.stringrandomizer.stringsscreen
 
 import android.arch.lifecycle.ViewModel
+import com.jakewharton.rxrelay2.PublishRelay
 import com.qbikkx.base.mvi.BaseViewModel
 import com.qbikkx.base.util.RxSchedulers
 import com.qbikkx.base.util.notOfType
 import com.qbikkx.base.util.randomString
 import com.qbikkx.data.hashstring.HashString
 import com.qbikkx.data.hashstring.source.HashStringRepository
+import io.reactivex.Flowable
+import io.reactivex.FlowableTransformer
 import io.reactivex.Observable
 import io.reactivex.ObservableTransformer
 import io.reactivex.functions.BiFunction
@@ -16,12 +19,12 @@ import io.reactivex.subjects.PublishSubject
  * Created by qbikkx on 16.03.18.
  */
 
-class StringsViewModel(stringsRepository: HashStringRepository, val schedulers: RxSchedulers) :
+class StringsViewModel(stringsRepository: HashStringRepository, schedulers: RxSchedulers) :
         ViewModel(), BaseViewModel<StringsIntent, StringsViewState> {
 
     private val proccessorsHolder = ProccessorsHolder(stringsRepository, schedulers)
 
-    private val intentsSubject: PublishSubject<StringsIntent> = PublishSubject.create()
+    private val intentsSubject: PublishRelay<StringsIntent> = PublishRelay.create()
     private val statesObservable: Observable<StringsViewState> = compose()
 
     private val intentFilter: ObservableTransformer<StringsIntent, StringsIntent>
@@ -82,24 +85,24 @@ class StringsViewModel(stringsRepository: HashStringRepository, val schedulers: 
                         } else {
                             result.strings
                         }
-                        previousState.copy(isLoading = false,
+                        previousState.copy(loadingsCounter = previousState.loadingsCounter.dec(),
                                 strings = viewStateStrings,
                                 sortOrder = result.order)
                     }
                     is StringsResult.LoadStringResult.Failure ->
-                        previousState.copy(isLoading = false)
-                    is StringsResult.LoadStringResult.InFlight ->
-                        previousState.copy(isLoading = true)
+                        previousState.copy(loadingsCounter = previousState.loadingsCounter.dec())
+                    StringsResult.LoadStringResult.InFlight ->
+                        previousState.copy(loadingsCounter = previousState.loadingsCounter.inc())
                 }
                 is StringsResult.AddStringResult -> when (result) {
                     is StringsResult.AddStringResult.Success -> {
-                        previousState.copy(isSaving = false, strings = result.strings)
+                        previousState.copy(savingsCounter = previousState.savingsCounter.dec(), strings = result.strings)
                     }
                     is StringsResult.AddStringResult.Failure -> {
-                        previousState.copy(isSaving = false)
+                        previousState.copy(savingsCounter = previousState.savingsCounter.dec())
                     }
-                    is StringsResult.AddStringResult.InFlight -> {
-                        previousState.copy(isSaving = true)
+                    StringsResult.AddStringResult.InFlight -> {
+                        previousState.copy(savingsCounter = previousState.savingsCounter.inc())
                     }
                 }
             }

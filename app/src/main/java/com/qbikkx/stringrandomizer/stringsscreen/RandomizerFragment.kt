@@ -11,11 +11,13 @@ import android.widget.ProgressBar
 import android.widget.Switch
 import android.widget.TextView
 import com.jakewharton.rxbinding2.widget.RxCompoundButton
+import com.jakewharton.rxrelay2.PublishRelay
 import com.qbikkx.base.mvi.BaseView
 import com.qbikkx.base.ui.BaseFragment
 import com.qbikkx.stringrandomizer.R
 import com.qbikkx.stringrandomizer.RandomizerViewModelFactory
 import com.qbikkx.stringrandomizer.di.ActivityScoped
+import io.reactivex.Flowable
 import io.reactivex.Observable
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.subjects.PublishSubject
@@ -38,8 +40,8 @@ class RandomizerFragment @Inject constructor() : BaseFragment(), BaseView<String
     private lateinit var stringsAdapter: StringsAdapter
     private val disposables = CompositeDisposable()
 
-    private val addStringIntentPublisher = PublishSubject.create<StringsIntent.AddStringIntent>()
-    private val changeSortIntentPublisher = PublishSubject.create<StringsIntent.SortOrderChangedIntent>()
+    private val addStringIntentPublisher = PublishRelay.create<StringsIntent.AddStringIntent>()
+    private val changeSortIntentPublisher = PublishRelay.create<StringsIntent.SortOrderChangedIntent>()
 
     @Inject
     lateinit var viewModelFactory: ViewModelProvider.Factory
@@ -62,9 +64,9 @@ class RandomizerFragment @Inject constructor() : BaseFragment(), BaseView<String
         stringsList.adapter = stringsAdapter
         disposables.add(viewModel.states().subscribe(this::render, Timber::e))
         viewModel.processIntents(intents())
-        addBtn.setOnClickListener { addStringIntentPublisher.onNext(StringsIntent.AddStringIntent) }
+        addBtn.setOnClickListener { addStringIntentPublisher.accept(StringsIntent.AddStringIntent) }
         sortOrderSwitch.setOnClickListener {
-            changeSortIntentPublisher.onNext(StringsIntent.SortOrderChangedIntent(
+            changeSortIntentPublisher.accept(StringsIntent.SortOrderChangedIntent(
                     if (sortOrderSwitch.isChecked) SortOrder.VALUE
                     else SortOrder.HASH))
             sortOrderSwitch.text = resources.getText(if (sortOrderSwitch.isChecked) R.string.sort_by_value
@@ -85,7 +87,7 @@ class RandomizerFragment @Inject constructor() : BaseFragment(), BaseView<String
 
     override fun render(state: StringsViewState) {
         Timber.e(state.toString())
-        if (state.isLoading || state.isSaving) {
+        if (state.savingsCounter > 0 || state.loadingsCounter > 0) {
             progressBar.visibility = View.VISIBLE
         } else {
             progressBar.visibility = View.GONE

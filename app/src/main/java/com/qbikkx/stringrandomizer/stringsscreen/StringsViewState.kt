@@ -6,15 +6,15 @@ import com.qbikkx.data.hashstring.HashString
 /**
  * Created by qbikkx on 16.03.18.
  */
-data class StringsViewState(val isLoading: Boolean,
-                            val isSaving: Boolean,
+data class StringsViewState(val loadingsCounter: Int,
+                            val savingsCounter: Int,
                             val strings: List<HashString>,
                             val sortOrder: SortOrder) : BaseViewState {
 
     companion object {
         fun idle(): StringsViewState = StringsViewState(
-                isLoading = false,
-                isSaving = false,
+                loadingsCounter = 0,
+                savingsCounter = 0,
                 strings = emptyList(),
                 sortOrder = SortOrder.HASH)
     }

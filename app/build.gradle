@@ -40,6 +40,7 @@ dependencies {
     api deps.android.arcComponents
     api deps.android.arcExt
     api deps.rx.rxBinding
+    api deps.rx.rxRelay
     kapt deps.android.arcComponentsCompiler
     kapt deps.dagger.daggerCompiler
     kapt deps.dagger.daggerAndroidCompiler
