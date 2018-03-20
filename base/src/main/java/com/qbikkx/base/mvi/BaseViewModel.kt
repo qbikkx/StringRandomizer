@@ -1,7 +1,7 @@
 package com.qbikkx.base.mvi
 
-import io.reactivex.Flowable
 import io.reactivex.Observable
+
 /**
  * Created by qbikkx on 16.03.18.
  */

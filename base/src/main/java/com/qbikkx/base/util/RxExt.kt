@@ -1,6 +1,5 @@
 package com.qbikkx.base.util
 
-import io.reactivex.Flowable
 import io.reactivex.Observable
 import io.reactivex.annotations.CheckReturnValue
 import io.reactivex.annotations.SchedulerSupport

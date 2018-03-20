@@ -10,17 +10,13 @@ import android.view.View
 import android.widget.ProgressBar
 import android.widget.Switch
 import android.widget.TextView
-import com.jakewharton.rxbinding2.widget.RxCompoundButton
 import com.jakewharton.rxrelay2.PublishRelay
 import com.qbikkx.base.mvi.BaseView
 import com.qbikkx.base.ui.BaseFragment
 import com.qbikkx.stringrandomizer.R
-import com.qbikkx.stringrandomizer.RandomizerViewModelFactory
 import com.qbikkx.stringrandomizer.di.ActivityScoped
-import io.reactivex.Flowable
 import io.reactivex.Observable
 import io.reactivex.disposables.CompositeDisposable
-import io.reactivex.subjects.PublishSubject
 import kotterknife.bindView
 import timber.log.Timber
 import javax.inject.Inject

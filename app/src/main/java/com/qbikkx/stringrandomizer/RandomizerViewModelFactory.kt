@@ -6,7 +6,6 @@ import com.qbikkx.base.util.RxSchedulers
 import com.qbikkx.data.hashstring.source.HashStringRepository
 import com.qbikkx.stringrandomizer.stringsscreen.StringsViewModel
 import javax.inject.Inject
-import javax.inject.Provider
 import javax.inject.Singleton
 
 @Suppress("UNCHECKED_CAST")
