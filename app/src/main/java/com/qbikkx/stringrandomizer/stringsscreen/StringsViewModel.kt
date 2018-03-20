@@ -18,8 +18,7 @@ import javax.inject.Inject
 class StringsViewModel @Inject constructor(private val processorsHolder: ProcessorsHolder) :
         ViewModel(), BaseViewModel<StringsIntent, StringsViewState> {
 
-
-    private val intentsSubject: PublishRelay<StringsIntent> = PublishRelay.create()
+    private val intentsRelay: PublishRelay<StringsIntent> = PublishRelay.create()
     private val statesObservable: Observable<StringsViewState> = compose()
 
     private val intentFilter: ObservableTransformer<StringsIntent, StringsIntent>
@@ -33,13 +32,13 @@ class StringsViewModel @Inject constructor(private val processorsHolder: Process
         }
 
     override fun processIntents(intents: Observable<StringsIntent>) {
-        intents.subscribe(intentsSubject)
+        intents.subscribe(intentsRelay)
     }
 
     override fun states(): Observable<StringsViewState> = statesObservable
 
     private fun compose(): Observable<StringsViewState> {
-        return intentsSubject
+        return intentsRelay
                 .compose(intentFilter)
                 .map(this::actionFromIntent)
                 .compose(processorsHolder.actionProccessor)
