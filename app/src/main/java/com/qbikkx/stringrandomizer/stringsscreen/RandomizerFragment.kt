@@ -42,16 +42,14 @@ class RandomizerFragment @Inject constructor() : BaseFragment(), BaseView<String
     @Inject
     lateinit var viewModelFactory: ViewModelProvider.Factory
 
-    private val viewModel: StringsViewModel by lazy(LazyThreadSafetyMode.NONE) {
-        ViewModelProviders.of(this, viewModelFactory)
-                .get(StringsViewModel::class.java)
-    }
+    private lateinit var viewModel: StringsViewModel
 
     override fun getLayoutRes(): Int = R.layout.fragment_randomizer
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         stringsAdapter = StringsAdapter(ArrayList(0))
+        viewModel = ViewModelProviders.of(this, viewModelFactory).get(StringsViewModel::class.java)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

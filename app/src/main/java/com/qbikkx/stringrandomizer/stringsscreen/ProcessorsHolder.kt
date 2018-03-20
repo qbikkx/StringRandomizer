@@ -6,11 +6,13 @@ import com.qbikkx.data.hashstring.HashString
 import com.qbikkx.data.hashstring.source.HashStringRepository
 import io.reactivex.Observable
 import io.reactivex.ObservableTransformer
+import javax.inject.Inject
 
 /**
  * Created by Sviat on 18.03.2018.
  */
-class ProccessorsHolder(stringsRepository: HashStringRepository, schedulers: RxSchedulers) {
+class ProcessorsHolder @Inject constructor(stringsRepository: HashStringRepository,
+                                           schedulers: RxSchedulers) {
 
     private fun sortStrings(strings: List<HashString>, order: SortOrder): List<HashString> =
             when (order) {

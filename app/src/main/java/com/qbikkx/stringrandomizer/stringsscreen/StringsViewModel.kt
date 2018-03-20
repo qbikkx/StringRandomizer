@@ -3,23 +3,21 @@ package com.qbikkx.stringrandomizer.stringsscreen
 import android.arch.lifecycle.ViewModel
 import com.jakewharton.rxrelay2.PublishRelay
 import com.qbikkx.base.mvi.BaseViewModel
-import com.qbikkx.base.util.RxSchedulers
 import com.qbikkx.base.util.notOfType
 import com.qbikkx.base.util.randomString
 import com.qbikkx.data.hashstring.HashString
-import com.qbikkx.data.hashstring.source.HashStringRepository
 import io.reactivex.Observable
 import io.reactivex.ObservableTransformer
 import io.reactivex.functions.BiFunction
+import javax.inject.Inject
 
 /**
  * Created by qbikkx on 16.03.18.
  */
 
-class StringsViewModel(stringsRepository: HashStringRepository, schedulers: RxSchedulers) :
+class StringsViewModel @Inject constructor(private val processorsHolder: ProcessorsHolder) :
         ViewModel(), BaseViewModel<StringsIntent, StringsViewState> {
 
-    private val proccessorsHolder = ProccessorsHolder(stringsRepository, schedulers)
 
     private val intentsSubject: PublishRelay<StringsIntent> = PublishRelay.create()
     private val statesObservable: Observable<StringsViewState> = compose()
@@ -44,7 +42,7 @@ class StringsViewModel(stringsRepository: HashStringRepository, schedulers: RxSc
         return intentsSubject
                 .compose(intentFilter)
                 .map(this::actionFromIntent)
-                .compose(proccessorsHolder.actionProccessor)
+                .compose(processorsHolder.actionProccessor)
                 .scan(StringsViewState.idle(), reducer)
                 //предотвращаем повторный render предыдущего состояния
                 .distinctUntilChanged()
