@@ -1,7 +1,10 @@
 package com.qbikkx.data.hashstring.source
 
+import android.arch.paging.PagedList
 import com.qbikkx.data.hashstring.HashString
+import com.qbikkx.data.hashstring.SortOrder
 import io.reactivex.Completable
+import io.reactivex.Observable
 import io.reactivex.Single
 
 /**
@@ -9,9 +12,13 @@ import io.reactivex.Single
  */
 interface HashStringDataSource {
 
-    fun getHashStrings() : Single<List<HashString>>
+	fun getHashStrings(order: SortOrder): RepoPagingInteractor<HashString>
 
-    fun saveHashString(hashString: HashString) : Single<HashString>
+	fun saveHashString(hashString: HashString): Single<HashString>
 
-    fun deleteHashStrings() : Completable
+	fun deleteHashStrings(): Completable
+
+	fun deleteHashString(id: Long): Completable
+
+	fun forceInsert(hashString: HashString): Single<HashString>
 }

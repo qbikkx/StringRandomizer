@@ -4,18 +4,18 @@ import android.arch.lifecycle.ViewModelProvider
 import android.arch.lifecycle.ViewModelProviders
 import android.os.Bundle
 import android.support.design.widget.FloatingActionButton
+import android.support.v4.widget.SwipeRefreshLayout
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.view.View
 import android.widget.ProgressBar
 import android.widget.Switch
 import android.widget.TextView
-import com.jakewharton.rxrelay2.PublishRelay
-import com.qbikkx.base.mvi.BaseView
 import com.qbikkx.base.ui.BaseFragment
+import com.qbikkx.base.util.observeNotNull
 import com.qbikkx.stringrandomizer.R
 import com.qbikkx.stringrandomizer.di.ActivityScoped
-import io.reactivex.Observable
+import com.qbikkx.stringrandomizer.stringsscreen.paging.StringsAdapter
 import io.reactivex.disposables.CompositeDisposable
 import kotterknife.bindView
 import timber.log.Timber
@@ -25,92 +25,81 @@ import javax.inject.Inject
  * Created by qbikkx on 16.03.18.
  */
 @ActivityScoped
-class RandomizerFragment @Inject constructor() : BaseFragment(), BaseView<StringsIntent, StringsViewState> {
+class RandomizerFragment @Inject constructor() : BaseFragment() {
 
-    val stringsList: RecyclerView by bindView(R.id.strings_list)
-    val addBtn: FloatingActionButton by bindView(R.id.add_new_string_fab)
-    val progressBar: ProgressBar by bindView(R.id.progress_bar)
-    val noDataView: TextView by bindView(R.id.no_string_view)
-    val sortOrderSwitch: Switch by bindView(R.id.sort_order_switch)
+	val stringsList: RecyclerView by bindView(R.id.strings_list)
+	val swipeRefresh by bindView<SwipeRefreshLayout>(R.id.swipe_refresh)
+	val addBtn: FloatingActionButton by bindView(R.id.add_new_string_fab)
+	val deleteBtn by bindView<FloatingActionButton>(R.id.delete_string_fab)
+	val insertBtn by bindView<FloatingActionButton>(R.id.insert_new_string_fab)
+	val slideBtn by bindView<FloatingActionButton>(R.id.slide_fab)
+	val progressBar: ProgressBar by bindView(R.id.progress_bar)
+	val noDataView: TextView by bindView(R.id.no_string_view)
+	val sortOrderSwitch: Switch by bindView(R.id.sort_order_switch)
 
-    private lateinit var stringsAdapter: StringsAdapter
-    private val disposables = CompositeDisposable()
+	private lateinit var stringsAdapter: StringsAdapter
+	private val disposables = CompositeDisposable()
 
-    private val addStringIntentPublisher = PublishRelay.create<StringsIntent.AddStringIntent>()
-    private val changeSortIntentPublisher = PublishRelay.create<StringsIntent.SortOrderChangedIntent>()
+	@Inject
+	lateinit var viewModelFactory: ViewModelProvider.Factory
 
-    @Inject
-    lateinit var viewModelFactory: ViewModelProvider.Factory
+	private lateinit var viewModel: StringsViewModel
 
-    private lateinit var viewModel: StringsViewModel
+	override fun getLayoutRes(): Int = R.layout.fragment_randomizer
 
-    override fun getLayoutRes(): Int = R.layout.fragment_randomizer
+	override fun onCreate(savedInstanceState: Bundle?) {
+		super.onCreate(savedInstanceState)
+		stringsAdapter = StringsAdapter()
+		viewModel = ViewModelProviders.of(this, viewModelFactory).get(StringsViewModel::class.java)
+		viewModel.stateLiveData.observeNotNull(this, this::render)
+	}
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        stringsAdapter = StringsAdapter(ArrayList(0))
-        viewModel = ViewModelProviders.of(this, viewModelFactory).get(StringsViewModel::class.java)
-    }
+	override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+		super.onViewCreated(view, savedInstanceState)
+		stringsList.layoutManager = LinearLayoutManager(activity!!)
+		stringsList.adapter = stringsAdapter
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        stringsList.layoutManager = LinearLayoutManager(activity!!)
-        stringsList.adapter = stringsAdapter
-        disposables.add(viewModel.states().subscribe(this::render, Timber::e))
-        viewModel.processIntents(intents())
-        addBtn.setOnClickListener { addStringIntentPublisher.accept(StringsIntent.AddStringIntent) }
-        sortOrderSwitch.setOnClickListener {
-            changeSortIntentPublisher.accept(StringsIntent.SortOrderChangedIntent(
-                    if (sortOrderSwitch.isChecked) SortOrder.VALUE
-                    else SortOrder.HASH))
-            sortOrderSwitch.text = resources.getText(if (sortOrderSwitch.isChecked) R.string.sort_by_value
-            else R.string.sort_by_hash)
-        }
-    }
+		swipeRefresh.setOnRefreshListener { viewModel.forceRefresh() }
+		addBtn.setOnClickListener { viewModel.addString() }
+		insertBtn.setOnClickListener { viewModel.forceInsert() }
+		deleteBtn.setOnClickListener { viewModel.delete() }
+		slideBtn.setOnClickListener { viewModel.slide() }
+		sortOrderSwitch.setOnClickListener {
+			viewModel.changeSort()
+			sortOrderSwitch.text = resources.getText(if (sortOrderSwitch.isChecked) R.string.sort_by_value
+			                                         else R.string.sort_by_hash)
+		}
+	}
 
-    override fun onDestroy() {
-        super.onDestroy()
-        disposables.dispose()
-    }
-
-    override fun intents(): Observable<StringsIntent> = Observable.merge(
-            initialIntent(),
-            addStringIntent(),
-            sortOrderChangedIntent())
+	override fun onDestroy() {
+		super.onDestroy()
+		disposables.dispose()
+	}
 
 
-    override fun render(state: StringsViewState) {
-        Timber.e(state.toString())
-        if (state.savingsCounter > 0 || state.loadingsCounter > 0) {
-            progressBar.visibility = View.VISIBLE
-        } else {
-            progressBar.visibility = View.GONE
-        }
+	fun render(state: StringsViewModel.ViewState) {
+		Timber.e(state.toString())
+		if (state.savingsCounter > 0) {
+			progressBar.visibility = View.VISIBLE
+		} else {
+			progressBar.visibility = View.GONE
+		}
 
-        if (state.strings.isEmpty()) {
-            showEmptyList()
-        } else {
-            showList()
-            stringsAdapter.setData(state.strings)
-        }
-    }
+		state.paging?.let {
+			showList()
+			stringsAdapter.submitList(state.paging)
+		} ?: showEmptyList()
 
-    private fun showEmptyList() {
-        stringsList.visibility = View.GONE
-        noDataView.visibility = View.VISIBLE
-    }
+		state.scrollEvent?.content?.let { stringsList.scrollToPosition(it) }
+	}
 
-    private fun showList() {
-        stringsList.visibility = View.VISIBLE
-        noDataView.visibility = View.GONE
-    }
+	private fun showEmptyList() {
+		stringsList.visibility = View.GONE
+		noDataView.visibility = View.VISIBLE
+	}
 
-    private fun initialIntent(): Observable<StringsIntent.InitialIntent> =
-            Observable.just(StringsIntent.InitialIntent)
-
-    private fun addStringIntent(): Observable<StringsIntent.AddStringIntent> =
-            addStringIntentPublisher
-
-    private fun sortOrderChangedIntent(): Observable<StringsIntent.SortOrderChangedIntent> =
-            changeSortIntentPublisher
+	private fun showList() {
+		stringsList.visibility = View.VISIBLE
+		noDataView.visibility = View.GONE
+	}
 }

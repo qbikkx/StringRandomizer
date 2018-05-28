@@ -36,6 +36,13 @@ dependencies {
     api deps.support.support
     api deps.support.designSupport
 
+    api deps.android.paging
+    api deps.android.rxpaging
+
+    api deps.rx.rxRelay
+    api deps.android.rxlivedata
+    api deps.android.arch
+
     api deps.kotlin.stdlib
 
     api deps.rx.rxJava

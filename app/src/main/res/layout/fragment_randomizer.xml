@@ -1,41 +1,94 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent">
+<android.support.constraint.ConstraintLayout
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:app="http://schemas.android.com/apk/res-auto"
+	android:layout_width="match_parent"
+	android:layout_height="match_parent"
+	>
 
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/strings_list"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+	<android.support.v4.widget.SwipeRefreshLayout
+		android:id="@+id/swipe_refresh"
+		android:layout_width="match_parent"
+		android:layout_height="match_parent"
+		>
 
-    <TextView
-        android:id="@+id/no_string_view"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:text="@string/empty_strings" />
+		<android.support.v7.widget.RecyclerView
+			android:id="@+id/strings_list"
+			android:layout_width="match_parent"
+			android:layout_height="match_parent"
+			/>
+
+	</android.support.v4.widget.SwipeRefreshLayout>
+
+	<TextView
+		android:id="@+id/no_string_view"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:text="@string/empty_strings"
+		app:layout_constraintBottom_toBottomOf="parent"
+		app:layout_constraintEnd_toEndOf="parent"
+		app:layout_constraintStart_toStartOf="parent"
+		app:layout_constraintTop_toTopOf="parent"
+		/>
+
+	<android.support.design.widget.FloatingActionButton
+		android:id="@+id/add_new_string_fab"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_margin="@dimen/fab_margin"
+		android:src="@drawable/ic_add"
+		app:layout_constraintBottom_toBottomOf="parent"
+		app:layout_constraintEnd_toEndOf="parent"
+		/>
+
+	<android.support.design.widget.FloatingActionButton
+		android:id="@+id/insert_new_string_fab"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_margin="@dimen/fab_margin"
+		android:src="@drawable/ic_force_insert"
+		app:layout_constraintBottom_toTopOf="@id/add_new_string_fab"
+		app:layout_constraintEnd_toEndOf="parent"
+		/>
+
+	<android.support.design.widget.FloatingActionButton
+		android:id="@+id/delete_string_fab"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_margin="@dimen/fab_margin"
+		android:src="@drawable/ic_delete"
+		app:layout_constraintBottom_toTopOf="@id/insert_new_string_fab"
+		app:layout_constraintEnd_toEndOf="parent"
+		/>
+
+	<android.support.design.widget.FloatingActionButton
+		android:id="@+id/slide_fab"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_margin="@dimen/fab_margin"
+		android:src="@drawable/ic_slide"
+		app:layout_constraintBottom_toTopOf="@id/delete_string_fab"
+		app:layout_constraintEnd_toEndOf="parent"
+		/>
 
 
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/add_new_string_fab"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
-        android:layout_margin="@dimen/fab_margin"
-        android:src="@drawable/ic_add" />
+	<ProgressBar
+		android:id="@+id/progress_bar"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_margin="@dimen/fab_margin"
+		app:layout_constraintBottom_toBottomOf="parent"
+		app:layout_constraintStart_toStartOf="parent"
+		/>
 
-    <ProgressBar
-        android:id="@+id/progress_bar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="@dimen/fab_margin"
-        android:layout_gravity="bottom"/>
-
-    <Switch
-        android:id="@+id/sort_order_switch"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/sort_by_hash"
-        android:layout_margin="@dimen/fab_margin"
-        android:layout_gravity="bottom|center_horizontal"/>
-</android.support.design.widget.CoordinatorLayout>
+	<Switch
+		android:id="@+id/sort_order_switch"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_margin="@dimen/fab_margin"
+		android:text="@string/sort_by_hash"
+		app:layout_constraintBottom_toBottomOf="parent"
+		app:layout_constraintEnd_toEndOf="parent"
+		app:layout_constraintStart_toStartOf="parent"
+		/>
+</android.support.constraint.ConstraintLayout>

@@ -1,7 +1,8 @@
 package com.qbikkx.data.hashstring.local
 
+import android.arch.paging.DataSource
 import com.qbikkx.data.hashstring.HashString
-import com.qbikkx.data.hashstring.source.HashStringDataSource
+import com.qbikkx.data.hashstring.SortOrder
 import com.qbikkx.data.hashstring.source.StringsRandomizerDatabase
 import io.reactivex.Completable
 import io.reactivex.Single
@@ -12,18 +13,34 @@ import javax.inject.Singleton
  * Created by qbikkx on 15.03.18.
  */
 @Singleton
-class HashStringLocalDataSource @Inject constructor(db: StringsRandomizerDatabase) : HashStringDataSource {
+class HashStringLocalDataSource @Inject constructor(val db: StringsRandomizerDatabase) {
 
-    private val hashStringDao = db.hashStringDao()
+	private val hashStringDao = db.hashStringDao()
 
-    override fun getHashStrings(): Single<List<HashString>> = hashStringDao.getAllHashStrings()
+	fun getHashStrings(): DataSource.Factory<Int, HashString> {
+		return hashStringDao.getAllHashStrings()
+	}
 
-    override fun saveHashString(hashString: HashString): Single<HashString> {
-        return Single.just(hashStringDao.insertOrUpdateShow(hashString))
-    }
+	fun saveHashString(hashString: HashString): Single<HashString> {
+		return Single.fromCallable { hashStringDao.insertOrUpdateShow(hashString) }
+	}
 
-    override fun deleteHashStrings(): Completable {
-        hashStringDao.deleteAllHashStrings()
-        return Completable.complete()
-    }
+	fun forceInsert(hashString: HashString): Single<HashString> {
+		return Single.fromCallable {
+			val id = hashStringDao.insertHashString(hashString)
+			hashString.copy(id = id)
+		}
+	}
+
+	fun saveHashStrings(hashStrings: List<HashString>): Completable {
+		return Completable.fromCallable { hashStringDao.insertHashStrings(hashStrings) }
+	}
+
+	fun deleteHashStrings(): Completable {
+		return hashStringDao.deleteAllHashStrings()
+	}
+
+	fun deleteHashString(id: Long): Completable {
+		return hashStringDao.deleteHashString(id)
+	}
 }

@@ -1,5 +1,7 @@
 package com.qbikkx.base.util
 
+import android.arch.lifecycle.LifecycleOwner
+import android.arch.lifecycle.LiveData
 import java.util.*
 
 /**
@@ -16,4 +18,8 @@ fun ClosedRange<Char>.randomString(lenght: Int) =
 inline fun <T, R : Comparable<R>> Iterable<T>.sortedByWithDelay(crossinline selector: (T) -> R?): List<T> {
     Thread.sleep(2000)
     return sortedWith(compareBy(selector))
+}
+
+fun <T> LiveData<T>.observeNotNull(owner: LifecycleOwner, observer: (T) -> Unit) {
+    observe(owner, android.arch.lifecycle.Observer { it?.let(observer) })
 }
